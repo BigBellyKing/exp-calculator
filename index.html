@@ -61,12 +61,33 @@
             border: 1px solid #ddd;
             margin: 10px 0;
         }
+        .instructions {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .instructions kbd {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>EXP Calculator</h1>
         
+        <div class="instructions">
+            <p><strong>How to use:</strong></p>
+            <ul>
+                <li>Press <kbd>Ctrl</kbd> + <kbd>V</kbd> to paste screenshot directly from clipboard</li>
+                <li>Or use the file upload button below</li>
+            </ul>
+        </div>
+
         <div class="input-group">
             <label for="imageInput">Upload EXP Bar Screenshot:</label>
             <input type="file" id="imageInput" accept="image/*">
@@ -112,6 +133,36 @@
                 document.getElementById('imageInput').addEventListener('change', this.handleImageUpload.bind(this));
                 document.getElementById('coopToggle').addEventListener('click', this.toggleCoop.bind(this));
                 document.getElementById('calculate').addEventListener('click', this.calculateDays.bind(this));
+                
+                // Add clipboard paste event listener
+                document.addEventListener('paste', this.handlePaste.bind(this));
+            }
+
+            handlePaste(event) {
+                const items = event.clipboardData.items;
+                
+                for (const item of items) {
+                    if (item.type.indexOf('image') !== -1) {
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        
+                        reader.onload = (e) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                this.canvas.clear();
+                                fabric.Image.fromURL(e.target.result, (img) => {
+                                    img.scaleToWidth(300);
+                                    this.canvas.add(img);
+                                    this.canvas.renderAll();
+                                });
+                            };
+                            img.src = e.target.result;
+                        };
+                        
+                        reader.readAsDataURL(blob);
+                        break;
+                    }
+                }
             }
 
             toggleCoop() {
